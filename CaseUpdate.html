@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Troubleshooting Case Assignment</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        .export-btn { margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h2>Create and Assign Troubleshooting Case</h2>
+    <form id="caseForm">
+        <label>Product Name:<br>
+            <input type="text" id="productName" required>
+        </label><br><br>
+        <label>Issue Description:<br>
+            <input type="text" id="issueDescription" required>
+        </label><br><br>
+        <label>Agent Name:<br>
+            <input type="text" id="agentName" required>
+        </label><br><br>
+        <label>ETA (yyyy-mm-dd):<br>
+            <input type="date" id="etaDate" required>
+        </label><br><br>
+        <button type="submit">Create Case</button>
+    </form>
+
+    <button class="export-btn" onclick="exportTableToExcel('casesTable', 'cases')">Export to Excel</button>
+
+    <table id="casesTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>Case Number</th>
+                <th>Product</th>
+                <th>Issue</th>
+                <th>Assigned Agent</th>
+                <th>Status</th>
+                <th>Opened Date</th>
+                <th>ETA</th>
+                <th>Closed Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="casesBody">
+        </tbody>
+    </table>
+
+    <script>
+        let caseCounter = 1;
+
+        function getTodayDate() {
+            const d = new Date();
+            return d.toISOString().split('T')[0];
+        }
+
+        document.getElementById('caseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const product = document.getElementById('productName').value;
+            const issue = document.getElementById('issueDescription').value;
+            const agent = document.getElementById('agentName').value;
+            const eta = document.getElementById('etaDate').value;
+            const caseNumber = "CASE-" + String(caseCounter).padStart(4, '0');
+            const status = "Open";
+            const openedDate = getTodayDate();
+            const closedDate = "";
+
+            const table = document.getElementById('casesTable');
+            const tbody = document.getElementById('casesBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${caseNumber}</td>
+                <td>${product}</td>
+                <td>${issue}</td>
+                <td>${agent}</td>
+                <td>${status}</td>
+                <td>${openedDate}</td>
+                <td>${eta}</td>
+                <td>${closedDate}</td>
+                <td><button onclick="closeCase(this)">Close Case</button></td>
+            `;
+            tbody.appendChild(row);
+            table.style.display = 'table';
+
+            caseCounter++;
+            document.getElementById('caseForm').reset();
+        });
+
+        window.closeCase = function(btn) {
+            const row = btn.parentElement.parentElement;
+            row.cells[4].innerText = "Closed";
+            row.cells[7].innerText = getTodayDate();
+            btn.disabled = true;
+        };
+
+        function exportTableToExcel(tableID, filename = ''){
+            const downloadLink = document.createElement("a");
+            const dataType = 'application/vnd.ms-excel';
+            const tableSelect = document.getElementById(tableID);
+            const tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+            filename = filename?filename+'.xls':'excel_data.xls';
+            downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+            downloadLink.download = filename;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</body>
+</html>
